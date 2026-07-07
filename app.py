@@ -1,7 +1,9 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 import pandas as pd
+from llm import ask_llm
 import re
+
 
 app = FastAPI(
     title="AI Solicitor Match API"
@@ -61,6 +63,10 @@ def get_postcode_area(postcode: str):
 
     return ""
 
+class ChatRequest(BaseModel):
+    message: str
+
+
 
 # -------------------------
 # Root
@@ -72,6 +78,14 @@ def home():
         "status": "API Running"
     }
 
+@app.post("/chat")
+def chat(request: ChatRequest):
+
+    reply = ask_llm(request.message)
+
+    return {
+        "reply": reply
+    }
 
 # -------------------------
 # Recommendation API
