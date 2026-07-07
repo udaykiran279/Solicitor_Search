@@ -122,7 +122,7 @@ User Case:
             }
         ]
     )
-    print(completion)
+    #print(completion)
     response = completion.choices[0].message.content.strip()
 
     work_areas = [
@@ -131,4 +131,4 @@ User Case:
     ]
 
     return work_areas
-print(classify_case("car insurance claim failed"))
+#print(classify_case("car insurance claim failed"))
