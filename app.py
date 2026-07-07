@@ -81,12 +81,15 @@ def home():
 @app.post("/chat")
 def chat(request: ChatRequest):
 
+    print("Received:", request.message)
+
     reply = ask_llm(request.message)
+
+    print("LLM Reply:", repr(reply))
 
     return {
         "reply": reply
     }
-
 # -------------------------
 # Recommendation API
 # -------------------------
