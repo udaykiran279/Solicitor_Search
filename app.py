@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 import pandas as pd
-from llm import ask_llm
+from llm import ask_llm,classify_case
 import re
 
 
@@ -97,24 +97,17 @@ def chat(request: ChatRequest):
 @app.post("/recommend")
 def recommend(query: Query):
 
-    print("\n==========================")
-    print("Incoming Request")
-    print("==========================")
-
-    print("Case:")
-    print(query.case_text)
-
-    print("User Postcode:")
-    print(query.postcode)
-
     postcode_area = get_postcode_area(
         query.postcode
     )
 
-    print("Postcode Area:")
-    print(postcode_area)
+    # Step 1: Classify the case
+    # AI Classification
+    work_areas = classify_case(query.case_text)
 
-    # Filter postcode
+    print("Detected Work Areas:", work_areas)
+
+    # Filter by postcode
     filtered = df[
         df["postcode"].str.startswith(
             postcode_area,
@@ -122,32 +115,31 @@ def recommend(query: Query):
         )
     ]
 
-    print(
-        f"After postcode filter: {len(filtered)}"
-    )
-
-    # Filter Authorised
+    # Filter authorised firms
     filtered = filtered[
         filtered["authorisation_status"]
         .fillna("")
         .astype(str)
         .str.strip()
-        .str.lower()
-        == "yes"
+        .str.lower() == "yes"
     ]
 
-    print(
-        f"After authorisation filter: {len(filtered)}"
-    )
+    # Match work areas
+    def matches(workareas):
 
-    # Optional sort
-    filtered = filtered.sort_values(
-        by="practice_name"
-    )
+        workareas = str(workareas).lower()
 
-    print("==========================\n")
+        return any(
+            area.lower() in workareas
+            for area in work_areas
+        )
+
+    filtered = filtered[
+        filtered["work_areas"].apply(matches)
+    ]
 
     return {
+        "work_areas": work_areas,
         "count": len(filtered),
         "recommendations": filtered.to_dict(
             orient="records"
