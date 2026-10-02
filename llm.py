@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 
 client = Groq(
-    api_key="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"
+    api_key="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"
 )
 
 SYSTEM_PROMPT = """
